@@ -1,0 +1,69 @@
+/*
+ * AlgoCanvas data-structure components — one shared style sheet.
+ * Change the look of EVERY structure by editing the variables below.
+ */
+:root {
+  --ds-current: #f59e0b; --ds-active: #6366f1; --ds-visited: #14b8a6; --ds-done: #22c55e;
+  --ds-found: #16a34a; --ds-mismatch: #ef4444; --ds-inserted: #a855f7; --ds-muted: #94a3b8;
+  --ds-surface: #ffffff; --ds-border: #cbd5e1; --ds-text: #1f2937; --ds-subtle: #64748b; --ds-radius: 10px;
+}
+.ds-hl-current { --ds-c: var(--ds-current); } .ds-hl-active { --ds-c: var(--ds-active); }
+.ds-hl-visited { --ds-c: var(--ds-visited); } .ds-hl-done { --ds-c: var(--ds-done); }
+.ds-hl-found { --ds-c: var(--ds-found); } .ds-hl-mismatch { --ds-c: var(--ds-mismatch); }
+.ds-hl-inserted { --ds-c: var(--ds-inserted); } .ds-hl-muted { --ds-c: var(--ds-muted); opacity: .55; }
+
+.ds-composite { display: flex; gap: 22px; padding: 6px 4px; color: var(--ds-text); align-items: flex-start; }
+.ds-layout-column { flex-direction: column; align-items: stretch; } .ds-layout-row { flex-direction: row; flex-wrap: wrap; }
+.ds-panel { min-width: 0; } .ds-layout-column .ds-panel { overflow-x: auto; }
+.ds-panel-title { display: flex; gap: 8px; align-items: baseline; margin-bottom: 8px; font-size: 12px; }
+.ds-panel-title b { letter-spacing: .06em; text-transform: uppercase; } .ds-panel-title span { color: var(--ds-subtle); }
+.ds-empty { color: var(--ds-subtle); font-style: normal; font-size: 13px; padding: 8px 4px; }
+.ds-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--ds-subtle); text-transform: uppercase; }
+
+/* array / string / heap array */
+.ds-cells { display: flex; gap: 6px; flex-wrap: nowrap; }
+.ds-cell-wrap { display: flex; flex-direction: column; align-items: center; min-width: 40px; }
+.ds-ptrs { min-height: 16px; font-size: 11px; font-weight: 700; color: var(--ds-active); white-space: nowrap; }
+.ds-cell { min-width: 40px; height: 40px; padding: 0 6px; display: grid; place-items: center; box-sizing: border-box; font-size: 16px;
+  background: color-mix(in srgb, var(--ds-c, #ffffff) 20%, var(--ds-surface)); border: 1.5px solid var(--ds-c, var(--ds-border)); border-radius: var(--ds-radius); }
+.ds-cell.ds-in-range { box-shadow: 0 -3px 0 var(--ds-active) inset; }
+.ds-index { font-size: 10px; color: var(--ds-subtle); margin-top: 3px; }
+
+/* stack */
+.ds-stack { display: inline-flex; flex-direction: column; gap: 5px; min-width: 76px; align-items: stretch; }
+.ds-stack-item { position: relative; height: 34px; display: grid; place-items: center; background: color-mix(in srgb, var(--ds-c, #ffffff) 20%, var(--ds-surface)); border: 1.5px solid var(--ds-c, var(--ds-border)); border-radius: 8px; font-size: 15px; }
+.ds-stack-item .ds-tag { position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%); }
+.ds-stack-base { height: 4px; border-radius: 3px; background: var(--ds-border); }
+
+/* queue */
+.ds-queue { display: flex; align-items: center; gap: 6px; }
+.ds-queue-item { position: relative; min-width: 40px; height: 40px; padding: 0 8px; display: grid; place-items: center; box-sizing: border-box; background: color-mix(in srgb, var(--ds-c, #ffffff) 20%, var(--ds-surface)); border: 1.5px solid var(--ds-c, var(--ds-border)); border-radius: var(--ds-radius); }
+.ds-queue-item .ds-tag { position: absolute; top: calc(100% + 3px); left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.ds-end { font-size: 10px; font-weight: 700; color: var(--ds-subtle); letter-spacing: .06em; padding: 0 4px; }
+
+/* linked list */
+.ds-ll { display: flex; align-items: flex-end; gap: 4px; }
+.ds-ll-group { display: flex; flex-direction: column; align-items: flex-start; }
+.ds-ll-row { display: flex; align-items: center; }
+.ds-node { min-width: 44px; height: 44px; padding: 0 8px; display: grid; place-items: center; box-sizing: border-box; background: color-mix(in srgb, var(--ds-c, #ffffff) 20%, var(--ds-surface)); border: 1.5px solid var(--ds-c, var(--ds-border)); border-radius: 999px; }
+.ds-arrow, .ds-jump, .ds-null { padding: 0 6px; font-size: 14px; color: var(--ds-subtle); } .ds-null, .ds-jump { font-size: 11px; }
+
+/* svg: tree / graph / heap tree */
+.ds-svg-wrap { overflow-x: auto; } .ds-svg { width: 100%; max-width: 720px; height: auto; max-height: 340px; display: block; }
+.ds-edge, .ds-gedge { stroke: var(--ds-border); stroke-width: 2; }
+.ds-gedge[class*="ds-hl-"] { stroke: var(--ds-c); stroke-width: 3; opacity: 1; }
+.ds-garrow { fill: var(--ds-border); } .ds-garrow[class*="ds-hl-"] { fill: var(--ds-c); }
+.ds-gweight { font-size: 11px; fill: var(--ds-subtle); }
+.ds-svg-node circle { fill: color-mix(in srgb, var(--ds-c, #ffffff) 22%, var(--ds-surface)); stroke: var(--ds-c, var(--ds-border)); stroke-width: 2; }
+.ds-svg-text { font-size: 14px; font-weight: 600; fill: var(--ds-text); } .ds-svg-ptr { font-size: 10px; font-weight: 700; fill: var(--ds-active); }
+.ds-heap { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+
+/* hash map */
+.ds-map { border-collapse: separate; border-spacing: 0; min-width: 160px; font-size: 14px; }
+.ds-map th { text-align: left; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--ds-subtle); padding: 4px 12px; }
+.ds-map td { padding: 6px 12px; border-top: 1px solid var(--ds-border); }
+.ds-row td { background: color-mix(in srgb, var(--ds-c, #ffffff) 20%, var(--ds-surface)); }
+.ds-row[class*="ds-hl-"] td { border-top-color: var(--ds-c); }
+
+/* legend swatch (used in the shared legend bar) */
+.legend-item i.ds-swatch { background: color-mix(in srgb, var(--ds-c) 35%, #ffffff); border-color: var(--ds-c); opacity: 1; }

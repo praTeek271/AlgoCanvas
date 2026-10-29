@@ -8,6 +8,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { compileQuestionTemplates } = require('./lib/question-registry');
+const ds = require('./lib/ds');
 
 const PORT = Number(process.env.PORT || 4173);
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -366,6 +367,10 @@ function execute({ problemId, userCode, input }) {
     const text = parseTextPayload(input, known.title); userTrace = longestSubstringFrames(text, flawed); optimalTrace = longestSubstringFrames(text);
   } else if (known.adapter === 'reverse-linked-list') {
     const values = parseIntegerArray(input, 'Linked list input'); userTrace = linkedListFrames(values, flawed); optimalTrace = linkedListFrames(values);
+  } else if (ds.getAdapter(known.adapter)) {
+    const adapter = ds.getAdapter(known.adapter); const parsed = adapter.parse(input);
+    const dsFlawed = typeof adapter.isFlawed === 'function' ? Boolean(adapter.isFlawed(userCode)) : false;
+    userTrace = ds.runAdapter(adapter, parsed, { flawed: dsFlawed }); optimalTrace = ds.runAdapter(adapter, parsed, { flawed: false });
   } else {
     throw new InputError(`No trace adapter is registered for ${known.id}.`);
   }
@@ -395,6 +400,7 @@ function serveStatic(req, res) {
 }
 
 function handleRequest(req, res) {
+  if (ds.handleApi(req, res, { refresh: refreshQuestionRegistry })) return;
   if (req.method === 'GET' && req.url.split('?')[0] === '/api/problems') {
     refreshQuestionRegistry();
     return sendJson(res, 200, { problems, registry: { summary: questionRegistry.summary, diagnostics: questionRegistry.diagnostics } });
@@ -412,7 +418,7 @@ function handleRequest(req, res) {
     });
     req.on('end', () => {
       try { const body = JSON.parse(Buffer.concat(chunks).toString('utf8')); sendJson(res, 200, execute(body)); }
-      catch (error) { sendJson(res, error instanceof InputError || error instanceof SyntaxError ? 400 : 500, { executionStatus: 'ERROR', error: error.message || 'Unexpected error' }); }
+      catch (error) { sendJson(res, error instanceof InputError || error instanceof SyntaxError || error.userError ? 400 : 500, { executionStatus: 'ERROR', error: error.message || 'Unexpected error' }); }
     });
     req.on('error', () => sendJson(res, 400, { executionStatus: 'ERROR', error: 'Invalid request body.' }));
     return;

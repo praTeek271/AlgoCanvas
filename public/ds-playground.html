@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlgoCanvas · Data-structure playground</title>
+<link rel="stylesheet" href="/ds-components.css">
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; background: #f6f7fb; color: #1f2937; }
+  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 28px 0 10px; } p.lead { margin: 0 0 18px; color: #64748b; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; } .card h3 { margin: 0 0 4px; font-size: 14px; }
+  .card small { color: #64748b; display: block; margin-bottom: 10px; } code, pre { background: #f1f5f9; border-radius: 6px; font-size: 12px; } pre { padding: 8px; overflow: auto; max-height: 150px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; } .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+  .legend-item i { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid; display: inline-block; }
+  select, textarea, button { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid #cbd5e1; } textarea { width: 100%; box-sizing: border-box; min-height: 54px; font-family: ui-monospace, monospace; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 10px 0; } #desc { color: #334155; min-height: 22px; } .err { color: #b91c1c; }
+</style></head><body>
+<h1>Data-structure playground</h1>
+<p class="lead">Every component the question bank can use, drawn from <code>/api/ds/catalog</code>. Edit <code>public/ds-components.css</code> and refresh to restyle them all.</p>
+<div class="legend" id="legend"></div>
+<h2>Components</h2><div class="grid" id="components"></div>
+<h2>Try an adapter</h2>
+<div class="card"><div class="bar"><select id="adapter"></select><label><input type="checkbox" id="flawed"> flawed variant</label><button id="run">Run</button><button id="prev">◀</button><button id="next">▶</button><span id="count"></span></div>
+<textarea id="input" spellcheck="false"></textarea><p id="desc"></p><div id="stage"></div></div>
+<script src="/ds-components.js"></script>
+<script>
+const $ = (s) => document.querySelector(s); let trace = null; let step = 0; let catalog = null;
+const j = (url, body) => fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined).then((r) => r.json());
+function draw() {
+  if (!trace) return; const f = trace.frames[step]; $('#stage').innerHTML = DSViz.render(f.structureState);
+  $('#desc').textContent = `${f.action} — ${f.actionDescription}`; $('#count').textContent = `${step + 1} / ${trace.frames.length}`;
+}
+async function run() {
+  const r = await j('/api/ds/preview', { adapter: $('#adapter').value, input: $('#input').value, flawed: $('#flawed').checked });
+  if (r.error) { $('#desc').innerHTML = `<span class="err">${r.error}</span>`; return; } trace = r.trace; step = 0; draw();
+}
+(async () => {
+  catalog = await j('/api/ds/catalog');
+  $('#legend').innerHTML = Object.entries(catalog.highlights).map(([k, v]) => `<span class="legend-item"><i class="ds-swatch ds-hl-${k}"></i>${k} — ${v}</span>`).join('');
+  $('#components').innerHTML = Object.entries(catalog.structures).map(([type, s]) => `<div class="card"><h3>${type}</h3><small>${s.description}</small>${DSViz.panelMarkup({ ...s.example, title: s.example.id })}<pre>${JSON.stringify(s.fields, null, 1).replace(/[<>&]/g, '')}</pre></div>`).join('');
+  $('#adapter').innerHTML = catalog.adapters.map((a) => `<option>${a.name}</option>`).join('');
+  const pick = () => { const a = catalog.adapters.find((x) => x.name === $('#adapter').value); $('#input').value = a?.sampleInput || ''; $('#desc').textContent = a?.description || ''; };
+  $('#adapter').onchange = pick; pick();
+  $('#run').onclick = run; $('#prev').onclick = () => { step = Math.max(0, step - 1); draw(); }; $('#next').onclick = () => { if (trace) { step = Math.min(trace.frames.length - 1, step + 1); draw(); } };
+  if (catalog.adapters.length) run();
+})();
+</script></body></html>

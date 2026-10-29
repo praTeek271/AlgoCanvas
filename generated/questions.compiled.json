@@ -1,6 +1,6 @@
 {
   "templateVersion": 1,
-  "compiledAt": "2026-10-19T19:53:43.777Z",
+  "compiledAt": "2026-10-29T11:53:46.055Z",
   "sourceDirectory": "questions",
   "questions": [
     {
@@ -290,13 +290,35 @@
         "time": "O(h)",
         "space": "O(1)"
       }
+    },
+    {
+      "templateVersion": 1,
+      "id": "DS-13",
+      "order": 13,
+      "title": "Valid Parentheses",
+      "category": "STACK",
+      "difficulty": "EASY",
+      "status": "READY",
+      "summary": "Check that every opening bracket is closed by the same type of bracket in the correct order.",
+      "defaultInput": "{\"text\":\"([)]\"}",
+      "inputHint": "JSON object: { text: string made only of ( ) [ ] { } }",
+      "inputKind": "text-object",
+      "mode": "COMPOSITE",
+      "adapter": "valid-parentheses",
+      "starterCode": "class Solution {\n  public boolean isValid(String s) {\n    // learner code\n    return false;\n  }\n}",
+      "referenceCode": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n  public boolean isValid(String s) {\n    Deque<Character> stack = new ArrayDeque<>();\n\n    for (int i = 0; i < s.length(); i++) {\n      char c = s.charAt(i);\n\n      if (c == '(' || c == '{' || c == '[') {\n        stack.push(c);\n      } else {\n        if (stack.isEmpty()) {\n          return false;\n        }\n        char open = stack.pop();\n        if (c == ')' && open != '(') return false;\n        if (c == '}' && open != '{') return false;\n        if (c == ']' && open != '[') return false;\n      }\n    }\n\n    return stack.isEmpty();\n  }\n}",
+      "approach": {
+        "explanation": "Brackets must close in the reverse order they opened, which is exactly how a stack behaves (last in, first out). Push every opening bracket. When a closing bracket appears, the most recent unmatched opening bracket must be on top of the stack and must be the same type; otherwise the string is invalid. After the last character the stack must be empty, or some opening bracket was never closed.",
+        "time": "O(n)",
+        "space": "O(n)"
+      }
     }
   ],
   "unavailableQuestions": [],
   "diagnostics": [],
   "summary": {
-    "discovered": 12,
-    "loaded": 12,
+    "discovered": 13,
+    "loaded": 13,
     "skipped": 0,
     "unavailableVisible": 0,
     "usingLastKnownGood": false

@@ -15,6 +15,7 @@ function displayMode(problem) {
   if (problem?.mode === 'LINKED_LIST') return 'linked list';
   if (problem?.mode === 'BINARY_SEARCH') return 'binary search';
   if (problem?.mode === 'TWO_POINTER_STRING') return 'two pointers';
+  if (problem?.mode === 'COMPOSITE') return 'data structures';
   if (problem?.mode === 'SLIDING_WINDOW_STRING') return 'sliding window';
   return 'array';
 }
@@ -92,7 +93,7 @@ function selectProblem(id, initial = false) {
   $('#header-title').textContent = problem.title; $('#header-id').textContent = problem.id; $('#lesson-title').textContent = problem.title; $('#lesson-summary').textContent = problem.summary;
   $('#lesson-pattern').textContent = problem.category.replace('LINKED LISTS', 'Linked lists').replace('ARRAYS', 'Arrays'); $('#lesson-difficulty').textContent = problem.difficulty.slice(0, 1) + problem.difficulty.slice(1).toLowerCase();
   $('#input-editor').value = problem.defaultInput;
-  $('#input-prompt').textContent = problem.mode === 'ARRAY' ? 'Use a JSON array' : problem.mode === 'BINARY_SEARCH' ? 'Set array + target' : problem.mode === 'TREE_TRAVERSAL' ? 'Set tree + BFS/DFS' : problem.mode === 'TREE_BST_INSERT' ? 'Set BST + element e' : problem.mode?.includes('STRING') ? 'Set your text' : 'List node values';
+  $('#input-prompt').textContent = problem.mode === 'COMPOSITE' ? 'Edit the JSON input' : problem.mode === 'ARRAY' ? 'Use a JSON array' : problem.mode === 'BINARY_SEARCH' ? 'Set array + target' : problem.mode === 'TREE_TRAVERSAL' ? 'Set tree + BFS/DFS' : problem.mode === 'TREE_BST_INSERT' ? 'Set BST + element e' : problem.mode?.includes('STRING') ? 'Set your text' : 'List node values';
   $('#input-hint').textContent = problem.inputHint;
   $('#drawer-problem-id').textContent = problem.id; $('#drawer-title').textContent = problem.title; $('#drawer-summary').textContent = problem.summary;
   const details = problem.approach; $('#approach-explanation').textContent = details.explanation; $('#approach-time').textContent = details.time; $('#approach-space').textContent = details.space; $('#drawer-reference-code').textContent = problem.referenceCode;
@@ -188,7 +189,7 @@ function renderStep() {
   if (!state.trace) return; const frame = currentFrame(); if (!frame) return; const trace = activeTrace(); const total = totalFrames(); const swapCount = trace.frames.slice(0, Math.min(state.step + 1, trace.frames.length)).filter((item) => item.action === 'SWAP').length;
   $('#visual-heading').textContent = state.focus === 'reference' ? 'Reference execution trace' : 'Your execution trace'; $('#visual-state-label').textContent = `${state.focus === 'reference' ? 'Reference' : 'Learner'} · ${frame.kind.replaceAll('_', ' ').toLowerCase()}`; $('#visual-action').textContent = frame.actionDescription; $('#primary-visual').innerHTML = visualMarkup(frame); $('#visual-legend').innerHTML = legendMarkup(frame); $('#stat-states').textContent = `${Math.min(state.step + 1, trace.totalSteps)} / ${trace.totalSteps}`;
   const compareCount = trace.frames.slice(0, Math.min(state.step + 1, trace.frames.length)).filter((item) => item.action === 'COMPARE').length;
-  const secondary = frame.kind === 'ARRAY' ? ['SWAPS', swapCount] : frame.kind === 'BINARY_SEARCH' ? ['PROBES', trace.frames.slice(0, Math.min(state.step + 1, trace.frames.length)).filter((item) => item.action === 'PROBE').length] : frame.kind === 'TREE_TRAVERSAL' ? ['VISITED', frame.structureState.order.length] : frame.kind === 'TREE_BST_INSERT' ? ['HEIGHT', frame.structureState.height] : frame.kind === 'TWO_POINTER_STRING' ? ['CHECKS', compareCount] : frame.kind === 'SLIDING_WINDOW_STRING' ? ['BEST', frame.structureState.bestLength] : ['REWIRES', trace.frames.slice(0, Math.min(state.step + 1, trace.frames.length)).filter((item) => item.action === 'REWIRE').length];
+  const secondary = frame.kind === 'ARRAY' ? ['SWAPS', swapCount] : frame.kind === 'BINARY_SEARCH' ? ['PROBES', trace.frames.slice(0, Math.min(state.step + 1, trace.frames.length)).filter((item) => item.action === 'PROBE').length] : frame.kind === 'TREE_TRAVERSAL' ? ['VISITED', frame.structureState.order.length] : frame.kind === 'TREE_BST_INSERT' ? ['HEIGHT', frame.structureState.height] : frame.kind === 'TWO_POINTER_STRING' ? ['CHECKS', compareCount] : frame.kind === 'SLIDING_WINDOW_STRING' ? ['BEST', frame.structureState.bestLength] : frame.kind === 'COMPOSITE' ? [(frame.structureState.stat && frame.structureState.stat.label) || 'STEP', frame.structureState.stat ? frame.structureState.stat.value : state.step + 1] : ['REWIRES', trace.frames.slice(0, Math.min(state.step + 1, trace.frames.length)).filter((item) => item.action === 'REWIRE').length];
   $('#secondary-stat').innerHTML = `${secondary[0]} <b>${secondary[1]}</b>`;
   $('#timeline').value = Math.min(state.step, total - 1); $('#timeline-percent').textContent = `${total > 1 ? Math.round((state.step / (total - 1)) * 100) : 100}%`; $('#timeline-caption').textContent = variableSummary(frame.variables); $('#timeline-step').textContent = `Step ${state.step + 1} / ${total}`; $('#code-line-status').textContent = frame.lineHighlighted ? `${state.focus === 'reference' ? 'Reference' : 'Learner'} state · line ${frame.lineHighlighted}` : 'State captured';
   const isDiffStep = state.trace.diff.firstDivergence && state.step === state.trace.diff.firstDivergence.step; $('#diff-card').style.boxShadow = isDiffStep ? '0 0 0 2px #f0a7b2,0 5px 14px #e9677921' : '';
@@ -201,8 +202,15 @@ function legendMarkup(frame) {
   if (frame.kind === 'TREE_BST_INSERT') return '<span class="legend-item"><i class="tree-active"></i>Search node</span><span class="legend-item"><i class="sorted"></i>Search path</span><span class="legend-item"><i class="tree-inserted"></i>Inserted node</span>';
   if (frame.kind === 'TWO_POINTER_STRING') return '<span class="legend-item"><i class="active"></i>Left pointer</span><span class="legend-item"><i class="swap"></i>Right pointer</span><span class="legend-item"><i class="mismatch"></i>Mismatch</span><span class="legend-item"><i></i>Ignored</span>';
   if (frame.kind === 'SLIDING_WINDOW_STRING') return '<span class="legend-item"><i class="active"></i>Active window</span><span class="legend-item"><i class="swap"></i>Right edge</span><span class="legend-item"><i class="sorted"></i>Best window</span><span class="legend-item"><i></i>Outside window</span>';
+  if (frame.kind === 'COMPOSITE') return window.DSViz ? window.DSViz.legend(frame.structureState) : '';
   return '<span class="legend-item"><i class="active"></i>Active pointer</span><span class="legend-item"><i class="swap"></i>Rewired node</span><span class="legend-item"><i class="sorted"></i>New head</span>';
 }
+// Shared data-structure components (public/ds-components.js + .css) load themselves here.
+(function loadDsComponents() {
+  if (window.DSViz) return;
+  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/ds-components.css'; document.head.appendChild(css);
+  const js = document.createElement('script'); js.src = '/ds-components.js'; document.head.appendChild(js);
+})();
 function visualMarkup(frame) {
   const structure = frame.structureState;
   if (structure.type === 'ARRAY') return state.visualMode === 'bars' ? barsMarkup(structure) : arrayMarkup(structure);
@@ -211,6 +219,7 @@ function visualMarkup(frame) {
   if (structure.type === 'LINKED_LIST') return linkedListMarkup(structure);
   if (structure.type === 'TWO_POINTER_STRING') return twoPointerStringMarkup(structure);
   if (structure.type === 'SLIDING_WINDOW_STRING') return slidingWindowMarkup(structure);
+  if (structure.type === 'COMPOSITE') return window.DSViz ? window.DSViz.render(structure) : emptyState('Loading renderer', 'Data-structure components are still loading.');
   return emptyState('Unsupported visual', 'A renderer has not been assigned.');
 }
 function arrayMarkup(data) { const active = new Set(data.active || []); const sorted = new Set(data.sorted || []); const swap = new Set(data.swap || []); return `<div class="array-tile-visual">${data.values.map((value, index) => `<div class="array-tile-wrap"><div class="array-tile ${active.has(index) ? 'active' : ''} ${sorted.has(index) ? 'sorted' : ''} ${swap.has(index) ? 'swap' : ''}">${value}${active.has(index) ? '<span class="tile-pin">●</span>' : ''}</div><span>${index}</span></div>`).join('')}</div>`; }
