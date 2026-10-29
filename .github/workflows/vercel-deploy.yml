@@ -1,0 +1,36 @@
+name: Protected Production Validation
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate code before owner merge
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run project validation
+        run: npm test
+
+      - name: Ready for owner review
+        run: |
+          echo "Validation passed. Changes are ready for the repository owner to review and merge to master."
+          echo "No deployment is triggered from pull requests. Vercel deploys only from the protected production branch."
